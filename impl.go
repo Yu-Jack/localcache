@@ -1,16 +1,16 @@
 package localcache
 
-import "fmt"
-
-func (c *cache) Get() {
-	fmt.Println("this is get method")
+func (c *cache) Get(key string) (data interface{}) {
+	return c.data[key]
 }
 
-func (c *cache) Set() {
-	fmt.Println("this is set method")
+func (c *cache) Set(key string, data interface{}) {
+	c.data[key] = data
 }
 
 func New() (c Cache) {
-	c = &cache{}
+	c = &cache{
+		data: make(map[string]interface{}),
+	}
 	return c
 }
