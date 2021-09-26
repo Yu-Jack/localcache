@@ -1,3 +1,4 @@
+// Package localcache use memory to read/write data.
 package localcache
 
 import (
@@ -14,6 +15,7 @@ func (c *cache) deleteExpiredData(key string) {
 	delete(c.data, key)
 }
 
+// Get retrive data with key.
 func (c *cache) Get(key string) (data interface{}) {
 	cd := c.data[key]
 	if cd.expired < makeMilliSecond() {
@@ -23,6 +25,7 @@ func (c *cache) Get(key string) (data interface{}) {
 	return c.data[key].stored
 }
 
+// Set save data with key, data is stored for 30 seconds.
 func (c *cache) Set(key string, data interface{}) {
 	cd := c.data[key]
 	cd.stored = data
@@ -30,6 +33,7 @@ func (c *cache) Set(key string, data interface{}) {
 	c.data[key] = cd
 }
 
+// New create a localcache.
 func New() (c Cache) {
 	c = &cache{
 		data: make(map[string]cacheData),
