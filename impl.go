@@ -11,32 +11,23 @@ func makeMilliSecond() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-var c = new()
-
-func new() (c Cache) {
-	c = &cache{
-		data: make(map[string]cacheData),
-	}
-	return c
+var c = &cache{
+	data: make(map[string]cacheData),
 }
 
-func (c *cache) deleteExpiredData(key string) {
-	delete(c.data, key)
-}
-
-func (c *cache) Get(key string) (data interface{}) {
+func (c *cache) get(key string) (data interface{}) {
 	cd, ok := c.data[key]
 	if !ok {
 		return nil
 	}
 	if cd.expired < makeMilliSecond() {
-		c.deleteExpiredData(key)
+		delete(c.data, key)
 		return nil
 	}
 	return c.data[key].stored
 }
 
-func (c *cache) Set(key string, data interface{}) {
+func (c *cache) set(key string, data interface{}) {
 	cd := c.data[key]
 	cd.stored = data
 	cd.expired = makeMilliSecond() + int64(expiredMilliSecond)
@@ -45,10 +36,10 @@ func (c *cache) Set(key string, data interface{}) {
 
 // Get retrive data with key.
 func Get(key string) (data interface{}) {
-	return c.Get(key)
+	return c.get(key)
 }
 
 // Set save data with key, data is stored for 30 seconds.
 func Set(key string, data interface{}) {
-	c.Set(key, data)
+	c.set(key, data)
 }
