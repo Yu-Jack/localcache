@@ -11,16 +11,19 @@ func currentMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+func (c *cache) deleteExpired(key string, expired int64) {
+	if expired < currentMillis() {
+		delete(c.data, key)
+	}
+}
+
 // Get retrive data with key.
 func (c *cache) Get(key string) (data interface{}) {
 	cd, ok := c.data[key]
 	if !ok {
 		return nil
 	}
-	if cd.expired < currentMillis() {
-		delete(c.data, key)
-		return nil
-	}
+	c.deleteExpired(key, cd.expired)
 	return c.data[key].stored
 }
 
