@@ -13,14 +13,11 @@ func makeMilliSecond() int64 {
 
 var c = new()
 
-// Get retrive data with key.
-func Get(key string) (data interface{}) {
-	return c.Get(key)
-}
-
-// Set save data with key, data is stored for 30 seconds.
-func Set(key string, data interface{}) {
-	c.Set(key, data)
+func new() (c Cache) {
+	c = &cache{
+		data: make(map[string]cacheData),
+	}
+	return c
 }
 
 func (c *cache) deleteExpiredData(key string) {
@@ -46,9 +43,12 @@ func (c *cache) Set(key string, data interface{}) {
 	c.data[key] = cd
 }
 
-func new() (c Cache) {
-	c = &cache{
-		data: make(map[string]cacheData),
-	}
-	return c
+// Get retrive data with key.
+func Get(key string) (data interface{}) {
+	return c.Get(key)
+}
+
+// Set save data with key, data is stored for 30 seconds.
+func Set(key string, data interface{}) {
+	c.Set(key, data)
 }

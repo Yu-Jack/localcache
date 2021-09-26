@@ -6,11 +6,10 @@
 You can save **any type data** by `Set` method. It will save data for 30 seconds.
 
 ```go
-cache = localcache.New()
-cache.Set("key", 1)
-cache.Get("key") // Got 1
+localcache.Set("key", 1)
+localcache.Get("key") // Got 1
 // After 30 second
-cache.Get("key") // Got nil
+localcache.Get("key") // Got nil
 ```
 
 ## How to test
