@@ -11,10 +11,6 @@ func makeMilliSecond() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func (c *cache) deleteExpiredData(key string) {
-	delete(c.data, key)
-}
-
 // Get retrive data with key.
 func (c *cache) Get(key string) (data interface{}) {
 	cd, ok := c.data[key]
@@ -22,7 +18,7 @@ func (c *cache) Get(key string) (data interface{}) {
 		return nil
 	}
 	if cd.expired < makeMilliSecond() {
-		c.deleteExpiredData(key)
+		delete(c.data, key)
 		return nil
 	}
 	return c.data[key].stored
