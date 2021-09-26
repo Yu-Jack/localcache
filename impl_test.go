@@ -41,7 +41,21 @@ func TestLocalcache(t *testing.T) {
 	}
 }
 
-func TestLocalcache_not_found_data(t *testing.T) {
+func TestLocalcache_overwriteData(t *testing.T) {
+	expect := 2
+	key := "key1"
+	cache := New()
+	cache.Set(key, 1)
+	cache.Set(key, 2)
+
+	got := cache.Get(key)
+
+	if !reflect.DeepEqual(expect, got) {
+		t.Fatalf("expected: %v, got: %v", expect, got)
+	}
+}
+
+func TestLocalcache_notFoundData(t *testing.T) {
 	expect := error(nil)
 	key := "key1"
 	notFoundKey := "notFoundkey"
@@ -55,7 +69,7 @@ func TestLocalcache_not_found_data(t *testing.T) {
 	}
 }
 
-func TestLocalcache_expired_data(t *testing.T) {
+func TestLocalcache_expiredData(t *testing.T) {
 	expiredMilliSecond = 1 * 1000
 	key := "key1"
 	cache := New()
