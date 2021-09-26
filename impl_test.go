@@ -33,7 +33,6 @@ func TestLocalcache(t *testing.T) {
 
 			got := cache.Get(tc.key)
 
-			// use to format the diff instead of reflect.DeepEqual
 			diff := cmp.Diff(tc.expect, got)
 			if diff != "" {
 				t.Fatalf(diff)
