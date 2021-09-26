@@ -28,10 +28,9 @@ func TestLocalcache(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			cache := New()
-			cache.Set(tc.key, tc.data)
+			Set(tc.key, tc.data)
 
-			got := cache.Get(tc.key)
+			got := Get(tc.key)
 
 			diff := cmp.Diff(tc.expect, got)
 			if diff != "" {
@@ -43,12 +42,11 @@ func TestLocalcache(t *testing.T) {
 
 func TestLocalcache_overwriteData(t *testing.T) {
 	expect := 2
-	key := "key1"
-	cache := New()
-	cache.Set(key, 1)
-	cache.Set(key, 2)
+	key := "key2"
+	Set(key, 1)
+	Set(key, 2)
 
-	got := cache.Get(key)
+	got := Get(key)
 
 	if !reflect.DeepEqual(expect, got) {
 		t.Fatalf("expected: %v, got: %v", expect, got)
@@ -59,10 +57,9 @@ func TestLocalcache_notFoundData(t *testing.T) {
 	expect := error(nil)
 	key := "key1"
 	notFoundKey := "notFoundkey"
-	cache := New()
-	cache.Set(key, 1)
+	Set(key, 1)
 
-	got := cache.Get(notFoundKey)
+	got := Get(notFoundKey)
 
 	if !reflect.DeepEqual(expect, got) {
 		t.Fatalf("expected: %v, got: %v", expect, got)
@@ -72,12 +69,11 @@ func TestLocalcache_notFoundData(t *testing.T) {
 func TestLocalcache_expiredData(t *testing.T) {
 	expiredMilliSecond = 1 * 1000
 	key := "key1"
-	cache := New()
 	expect := error(nil)
-	cache.Set(key, 1)
+	Set(key, 1)
 	time.Sleep(2 * time.Second)
 
-	got := cache.Get(key)
+	got := Get(key)
 
 	if !reflect.DeepEqual(expect, got) {
 		t.Fatalf("expected: %v, got: %v", expect, got)
