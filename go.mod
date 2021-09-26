@@ -1,4 +1,4 @@
-module github.com/Yu-Jack/go-localcache
+module github.com/Yu-Jack/localcache
 
 go 1.16
 
