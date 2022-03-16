@@ -44,7 +44,7 @@ func (c *cache) Set(key string, data interface{}) {
 func (c *cache) listenExpiredTimer() {
 	for {
 		for _, t := range c.timerList {
-			<-t.timer.C
+			<-t.timer.C // there is a bug to stuck other timer
 			c.delete(t.key)
 		}
 	}
