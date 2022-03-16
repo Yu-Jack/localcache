@@ -47,7 +47,6 @@ func TestLocalcache_overwriteData(t *testing.T) {
 	cache := New()
 	cache.Set(key, 1)
 	cache.Set(key, 2)
-
 	got := cache.Get(key)
 
 	if !reflect.DeepEqual(expect, got) {
@@ -70,12 +69,13 @@ func TestLocalcache_notFoundData(t *testing.T) {
 }
 
 func TestLocalcache_expiredData(t *testing.T) {
-	expiredMilliSecond = 1 * 1000
+	expiredMilliSecond = 1 * time.Second
 	key := "key1"
 	cache := New()
 	expect := error(nil)
 	cache.Set(key, 1)
-	time.Sleep(2 * time.Second)
+	cache.Set(key, 2)
+	time.Sleep(3 * time.Second)
 
 	got := cache.Get(key)
 

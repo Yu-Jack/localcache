@@ -5,16 +5,14 @@ import (
 	"time"
 )
 
-var expiredMilliSecond int = 30 * 1000
+var expiredMilliSecond time.Duration = 30 * time.Second
 
 func currentMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func (c *cache) deleteExpired(key string, expired int64) {
-	if expired < currentMillis() {
-		delete(c.data, key)
-	}
+func (c *cache) delete(key string) {
+	delete(c.data, key)
 }
 
 // Get retrive data with key.
@@ -23,21 +21,30 @@ func (c *cache) Get(key string) (data interface{}) {
 	if !ok {
 		return nil
 	}
-	c.deleteExpired(key, cd.expired)
-	return c.data[key].stored
+	return cd.stored
 }
 
 // Set save data with key, data is stored for 30 seconds.
 func (c *cache) Set(key string, data interface{}) {
-	cd := c.data[key]
+	cd, ok := c.data[key]
 	cd.stored = data
 	cd.expired = currentMillis() + int64(expiredMilliSecond)
+	if !ok {
+		cd.timer = time.NewTimer(expiredMilliSecond)
+	} else {
+		cd.timer.Reset(expiredMilliSecond)
+	}
 	c.data[key] = cd
+
+	go func() {
+		<-cd.timer.C
+		c.delete(key)
+	}()
 }
 
 // New create a localcache.
-func New() (c Cache) {
-	c = &cache{
+func New() Cache {
+	c := &cache{
 		data: make(map[string]cacheData),
 	}
 	return c
