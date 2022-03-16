@@ -85,7 +85,7 @@ func TestLocalcache_expiredData(t *testing.T) {
 }
 
 func TestLocalcache_concurrent(t *testing.T) {
-	expiredMilliSecond = 3 * time.Second
+	expiredMilliSecond = 1 * time.Second
 
 	cache := New()
 	key := "key1"
@@ -95,8 +95,8 @@ func TestLocalcache_concurrent(t *testing.T) {
 	go func() {
 		cache.Set(key, 2)
 	}()
-	time.Sleep(2 * time.Second)
-	expect := 1
+	time.Sleep(3 * time.Second)
+	expect := error(nil)
 
 	got := cache.Get(key)
 
