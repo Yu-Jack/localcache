@@ -14,7 +14,7 @@ type cacheData struct {
 	stored  interface{}
 	expired int64
 	timer   *time.Timer
-	lock    *sync.Mutex
+	locker  *sync.Mutex
 }
 
 type cacheTimer struct {

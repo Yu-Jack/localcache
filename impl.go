@@ -40,9 +40,9 @@ func (c *cache) Get(key string) (data interface{}) {
 // Set save data with key, data is stored for 30 seconds.
 func (c *cache) Set(key string, data interface{}) {
 	cd, ok := c.data[key]
-	cd.lock = new(sync.Mutex)
-	cd.lock.Lock()
-	defer cd.lock.Unlock()
+	cd.locker = new(sync.Mutex)
+	cd.locker.Lock()
+	defer cd.locker.Unlock()
 
 	cd.stored = data
 	cd.expired = currentMillis() + int64(expiredMilliSecond)
