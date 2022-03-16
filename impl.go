@@ -45,7 +45,7 @@ func (c *cache) listenExpiredTimer() {
 	for {
 		for _, t := range c.timerList {
 			<-t.timer.C
-			delete(c.data, t.key)
+			c.delete(t.key)
 		}
 	}
 }
