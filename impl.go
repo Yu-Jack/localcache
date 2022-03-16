@@ -31,15 +31,23 @@ func (c *cache) Set(key string, data interface{}) {
 	cd.expired = currentMillis() + int64(expiredMilliSecond)
 	if !ok {
 		cd.timer = time.NewTimer(expiredMilliSecond)
+		c.timerList = append(c.timerList, cacheTimer{
+			timer: cd.timer,
+			key:   key,
+		})
 	} else {
 		cd.timer.Reset(expiredMilliSecond)
 	}
 	c.data[key] = cd
+}
 
-	go func() {
-		<-cd.timer.C
-		c.delete(key)
-	}()
+func (c *cache) listenExpiredTimer() {
+	for {
+		for _, t := range c.timerList {
+			<-t.timer.C
+			delete(c.data, t.key)
+		}
+	}
 }
 
 // New create a localcache.
@@ -47,5 +55,6 @@ func New() Cache {
 	c := &cache{
 		data: make(map[string]cacheData),
 	}
+	go c.listenExpiredTimer()
 	return c
 }

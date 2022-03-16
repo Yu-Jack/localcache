@@ -13,6 +13,12 @@ type cacheData struct {
 	timer   *time.Timer
 }
 
+type cacheTimer struct {
+	timer *time.Timer
+	key   string
+}
+
 type cache struct {
-	data map[string]cacheData
+	data      map[string]cacheData
+	timerList []cacheTimer
 }
