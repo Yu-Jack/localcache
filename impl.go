@@ -16,6 +16,17 @@ func (c *cache) delete(key string) {
 	delete(c.data, key)
 }
 
+func (c *cache) deleteTimer(key string) {
+	var deletedIndex int
+	for i, timer := range c.timerList {
+		if timer.key == key {
+			deletedIndex = i
+			break
+		}
+	}
+	c.timerList = append(c.timerList[:deletedIndex], c.timerList[deletedIndex+1:]...)
+}
+
 // Get retrive data with key.
 func (c *cache) Get(key string) (data interface{}) {
 	cd, ok := c.data[key]
@@ -51,6 +62,7 @@ func (c *cache) listenExpiredTimer() {
 			select {
 			case <-t.timer.C:
 				c.delete(t.key)
+				c.deleteTimer(t.key)
 			default:
 			}
 		}
