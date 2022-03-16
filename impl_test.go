@@ -83,3 +83,24 @@ func TestLocalcache_expiredData(t *testing.T) {
 		t.Fatalf("expected: %v, got: %v", expect, got)
 	}
 }
+
+func TestLocalcache_concurrent(t *testing.T) {
+	expiredMilliSecond = 3 * time.Second
+
+	cache := New()
+	key := "key1"
+	go func() {
+		cache.Set(key, 1)
+	}()
+	go func() {
+		cache.Set(key, 2)
+	}()
+	time.Sleep(2 * time.Second)
+	expect := 1
+
+	got := cache.Get(key)
+
+	if !reflect.DeepEqual(expect, got) {
+		t.Fatalf("expected: %v, got: %v", expect, got)
+	}
+}

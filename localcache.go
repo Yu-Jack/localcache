@@ -24,5 +24,5 @@ type cacheTimer struct {
 type cache struct {
 	data      map[string]cacheData
 	timerList []cacheTimer
-	locker    sync.Mutex
+	locker    map[string]*sync.Mutex
 }

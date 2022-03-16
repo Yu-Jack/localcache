@@ -2,11 +2,14 @@
 package localcache
 
 import (
+	"sync"
 	"time"
 )
 
-var expiredMilliSecond time.Duration = 30 * time.Second
-var checkPeriod time.Duration = 1 * time.Second
+var (
+	expiredMilliSecond time.Duration = 30 * time.Second
+	checkPeriod        time.Duration = 1 * time.Second
+)
 
 func currentMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
@@ -38,12 +41,10 @@ func (c *cache) Get(key string) (data interface{}) {
 
 // Set save data with key, data is stored for 30 seconds.
 func (c *cache) Set(key string, data interface{}) {
-	cd, ok := c.data[key]
-	c.locker.Lock() // we should use locker by key, not by whole cache store
-	defer c.locker.Unlock()
+	c.lock(key)
+	defer c.unlock(key)
 
-	cd.stored = data
-	cd.expired = currentMillis() + int64(expiredMilliSecond)
+	cd, ok := c.data[key]
 	if !ok {
 		cd.timer = time.NewTimer(expiredMilliSecond)
 		c.timerList = append(c.timerList, cacheTimer{
@@ -53,6 +54,8 @@ func (c *cache) Set(key string, data interface{}) {
 	} else {
 		cd.timer.Reset(expiredMilliSecond)
 	}
+	cd.stored = data
+	cd.expired = currentMillis() + int64(expiredMilliSecond)
 	c.data[key] = cd
 }
 
@@ -70,10 +73,26 @@ func (c *cache) listenExpiredTimer() {
 	}
 }
 
+// lock cache data per key, instead of whole cache store
+func (c *cache) lock(key string) {
+	locker, ok := c.locker[key]
+	if !ok {
+		locker = new(sync.Mutex)
+		c.locker[key] = locker
+	}
+	locker.Lock()
+}
+
+func (c *cache) unlock(key string) {
+	locker := c.locker[key]
+	locker.Unlock()
+}
+
 // New create a localcache.
 func New() Cache {
 	c := &cache{
-		data: make(map[string]cacheData),
+		data:   make(map[string]cacheData),
+		locker: make(map[string]*sync.Mutex),
 	}
 	go c.listenExpiredTimer()
 	return c
