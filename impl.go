@@ -2,6 +2,7 @@
 package localcache
 
 import (
+	"sync"
 	"time"
 )
 
@@ -27,6 +28,8 @@ func (c *cache) Get(key string) (data interface{}) {
 // Set save data with key, data is stored for 30 seconds.
 func (c *cache) Set(key string, data interface{}) {
 	cd, ok := c.data[key]
+	cd.lock = new(sync.Mutex)
+	cd.lock.Lock()
 	cd.stored = data
 	cd.expired = currentMillis() + int64(expiredMilliSecond)
 	if !ok {
@@ -38,6 +41,7 @@ func (c *cache) Set(key string, data interface{}) {
 	} else {
 		cd.timer.Reset(expiredMilliSecond)
 	}
+	cd.lock.Unlock()
 	c.data[key] = cd
 }
 
