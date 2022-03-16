@@ -7,6 +7,7 @@ import (
 )
 
 var expiredMilliSecond time.Duration = 30 * time.Second
+var checkPeriod time.Duration = 1 * time.Second
 
 func currentMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
@@ -67,6 +68,7 @@ func (c *cache) listenExpiredTimer() {
 			default:
 			}
 		}
+		time.Sleep(checkPeriod)
 	}
 }
 
