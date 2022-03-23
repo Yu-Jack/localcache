@@ -15,7 +15,7 @@ func currentMillis() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func (c *cache) delete(key string) {
+func (c *cache) deleteKey(key string) {
 	delete(c.data, key)
 }
 
@@ -41,8 +41,8 @@ func (c *cache) Get(key string) (data interface{}) {
 
 // Set save data with key, data is stored for 30 seconds.
 func (c *cache) Set(key string, data interface{}) {
-	c.lock(key)
-	defer c.unlock(key)
+	locker := c.lock(key)
+	defer locker.Unlock()
 
 	cd, ok := c.data[key]
 	if !ok {
@@ -64,8 +64,13 @@ func (c *cache) listenExpiredTimer() {
 		for _, t := range c.timerList {
 			select {
 			case <-t.timer.C:
-				c.delete(t.key)
+				locker := c.lock(t.key)
+				c.deleteLockKey(t.key)
+
+				c.deleteKey(t.key)
 				c.deleteTimer(t.key)
+
+				locker.Unlock()
 			default:
 			}
 		}
@@ -74,18 +79,18 @@ func (c *cache) listenExpiredTimer() {
 }
 
 // lock cache data per key, instead of whole cache store
-func (c *cache) lock(key string) {
+func (c *cache) lock(key string) *sync.Mutex {
 	locker, ok := c.locker[key]
 	if !ok {
 		locker = new(sync.Mutex)
 		c.locker[key] = locker
 	}
 	locker.Lock()
+	return locker
 }
 
-func (c *cache) unlock(key string) {
-	locker := c.locker[key]
-	locker.Unlock()
+func (c *cache) deleteLockKey(key string) {
+	delete(c.locker, key)
 }
 
 // New create a localcache.
