@@ -1,14 +1,22 @@
 package localcache
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
-func TestLocalcache(t *testing.T) {
+type ExampleTestSuite struct {
+	suite.Suite
+}
+
+func TestExampleTestSuite(t *testing.T) {
+	suite.Run(t, new(ExampleTestSuite))
+}
+
+func (suit *ExampleTestSuite) TestLocalcache() {
 	tests := []struct {
 		name   string
 		key    string
@@ -27,21 +35,16 @@ func TestLocalcache(t *testing.T) {
 	}
 
 	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			cache := New()
-			cache.Set(tc.key, tc.data)
+		cache := New()
+		cache.Set(tc.key, tc.data)
 
-			got := cache.Get(tc.key)
+		got := cache.Get(tc.key)
 
-			diff := cmp.Diff(tc.expect, got)
-			if diff != "" {
-				t.Fatalf(diff)
-			}
-		})
+		assert.Equal(suit.T(), tc.expect, got)
 	}
 }
 
-func TestLocalcache_overwriteData(t *testing.T) {
+func (suit *ExampleTestSuite) TestLocalcache_overwriteData() {
 	expect := 2
 	key := "key1"
 	cache := New()
@@ -49,12 +52,10 @@ func TestLocalcache_overwriteData(t *testing.T) {
 	cache.Set(key, 2)
 	got := cache.Get(key)
 
-	if !reflect.DeepEqual(expect, got) {
-		t.Fatalf("expected: %v, got: %v", expect, got)
-	}
+	assert.Equal(suit.T(), expect, got)
 }
 
-func TestLocalcache_notFoundData(t *testing.T) {
+func (suit *ExampleTestSuite) TestLocalcache_notFoundData() {
 	expect := error(nil)
 	key := "key1"
 	notFoundKey := "notFoundkey"
@@ -63,12 +64,10 @@ func TestLocalcache_notFoundData(t *testing.T) {
 
 	got := cache.Get(notFoundKey)
 
-	if !reflect.DeepEqual(expect, got) {
-		t.Fatalf("expected: %v, got: %v", expect, got)
-	}
+	assert.Equal(suit.T(), expect, got)
 }
 
-func TestLocalcache_expiredData(t *testing.T) {
+func (suit *ExampleTestSuite) TestLocalcache_expiredData() {
 	expiredMilliSecond = 1 * time.Second
 	key := "key1"
 	cache := New()
@@ -79,13 +78,12 @@ func TestLocalcache_expiredData(t *testing.T) {
 
 	got := cache.Get(key)
 
-	if !reflect.DeepEqual(expect, got) {
-		t.Fatalf("expected: %v, got: %v", expect, got)
-	}
+	assert.Equal(suit.T(), expect, got)
 }
 
-func TestLocalcache_concurrent(t *testing.T) {
+func (suit *ExampleTestSuite) TestLocalcache_concurrent() {
 	expiredMilliSecond = 1 * time.Second
+	expect := error(nil)
 
 	cache := New()
 	key := "key1"
@@ -96,11 +94,8 @@ func TestLocalcache_concurrent(t *testing.T) {
 		cache.Set(key, 2)
 	}()
 	time.Sleep(3 * time.Second)
-	expect := error(nil)
 
 	got := cache.Get(key)
 
-	if !reflect.DeepEqual(expect, got) {
-		t.Fatalf("expected: %v, got: %v", expect, got)
-	}
+	assert.Equal(suit.T(), expect, got)
 }
