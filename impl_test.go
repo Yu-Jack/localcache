@@ -1,6 +1,7 @@
 package localcache
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -10,10 +11,22 @@ import (
 
 type ExampleTestSuite struct {
 	suite.Suite
+
+	cache Cache
 }
 
 func TestExampleTestSuite(t *testing.T) {
 	suite.Run(t, new(ExampleTestSuite))
+}
+
+func (suit *ExampleTestSuite) SetupTest() {
+	fmt.Println("prepare cache ...")
+	suit.cache = NewCache()
+}
+
+func (suit *ExampleTestSuite) TearDownTest() {
+	fmt.Println("delete all cache ...")
+	suit.cache.DeleteAll()
 }
 
 func (suit *ExampleTestSuite) TestLocalcache() {
@@ -35,10 +48,9 @@ func (suit *ExampleTestSuite) TestLocalcache() {
 	}
 
 	for _, tc := range tests {
-		cache := NewCache()
-		cache.Set(tc.key, tc.data)
+		suit.cache.Set(tc.key, tc.data)
 
-		got := cache.Get(tc.key)
+		got := suit.cache.Get(tc.key)
 
 		assert.Equal(suit.T(), tc.expect, got)
 	}
@@ -47,10 +59,9 @@ func (suit *ExampleTestSuite) TestLocalcache() {
 func (suit *ExampleTestSuite) TestLocalcache_overwriteData() {
 	expect := 2
 	key := "key1"
-	cache := NewCache()
-	cache.Set(key, 1)
-	cache.Set(key, 2)
-	got := cache.Get(key)
+	suit.cache.Set(key, 1)
+	suit.cache.Set(key, 2)
+	got := suit.cache.Get(key)
 
 	assert.Equal(suit.T(), expect, got)
 }
@@ -59,10 +70,9 @@ func (suit *ExampleTestSuite) TestLocalcache_notFoundData() {
 	expect := error(nil)
 	key := "key1"
 	notFoundKey := "notFoundkey"
-	cache := NewCache()
-	cache.Set(key, 1)
+	suit.cache.Set(key, 1)
 
-	got := cache.Get(notFoundKey)
+	got := suit.cache.Get(notFoundKey)
 
 	assert.Equal(suit.T(), expect, got)
 }
@@ -70,13 +80,12 @@ func (suit *ExampleTestSuite) TestLocalcache_notFoundData() {
 func (suit *ExampleTestSuite) TestLocalcache_expiredData() {
 	expiredMilliSecond = 1 * time.Second
 	key := "key1"
-	cache := NewCache()
 	expect := error(nil)
-	cache.Set(key, 1)
-	cache.Set(key, 2)
+	suit.cache.Set(key, 1)
+	suit.cache.Set(key, 2)
 	time.Sleep(3 * time.Second)
 
-	got := cache.Get(key)
+	got := suit.cache.Get(key)
 
 	assert.Equal(suit.T(), expect, got)
 }
@@ -84,18 +93,16 @@ func (suit *ExampleTestSuite) TestLocalcache_expiredData() {
 func (suit *ExampleTestSuite) TestLocalcache_concurrent() {
 	expiredMilliSecond = 1 * time.Second
 	expect := error(nil)
-
-	cache := NewCache()
 	key := "key1"
 	go func() {
-		cache.Set(key, 1)
+		suit.cache.Set(key, 1)
 	}()
 	go func() {
-		cache.Set(key, 2)
+		suit.cache.Set(key, 2)
 	}()
 	time.Sleep(3 * time.Second)
 
-	got := cache.Get(key)
+	got := suit.cache.Get(key)
 
 	assert.Equal(suit.T(), expect, got)
 }

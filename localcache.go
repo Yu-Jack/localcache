@@ -8,6 +8,7 @@ import (
 type Cache interface {
 	Get(key string) (data interface{})
 	Set(key string, data interface{})
+	DeleteAll()
 }
 
 type cacheData struct {
@@ -24,5 +25,7 @@ type cacheTimer struct {
 type cache struct {
 	data      map[string]cacheData
 	timerList []cacheTimer
-	locker    map[string]*sync.Mutex
+
+	locker      map[string]*sync.Mutex
+	cacheLocker sync.Mutex
 }

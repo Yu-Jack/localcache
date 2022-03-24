@@ -2,6 +2,7 @@
 package localcache
 
 import (
+	"reflect"
 	"sync"
 	"time"
 )
@@ -28,6 +29,16 @@ func (c *cache) deleteTimer(key string) {
 		}
 	}
 	c.timerList = append(c.timerList[:deletedIndex], c.timerList[deletedIndex+1:]...)
+}
+
+func (c *cache) DeleteAll() {
+	c.cacheLocker.Lock()
+	defer c.cacheLocker.Unlock()
+
+	keys := reflect.ValueOf(c.data).MapKeys()
+	for _, key := range keys {
+		c.deleteKey(key.String())
+	}
 }
 
 // Get retrive data with key.
