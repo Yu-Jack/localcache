@@ -94,7 +94,7 @@ func (c *cache) deleteLockKey(key string) {
 }
 
 // New create a localcache.
-func New() Cache {
+func NewCache() Cache {
 	c := &cache{
 		data:   make(map[string]cacheData),
 		locker: make(map[string]*sync.Mutex),

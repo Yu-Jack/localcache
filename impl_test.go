@@ -35,7 +35,7 @@ func (suit *ExampleTestSuite) TestLocalcache() {
 	}
 
 	for _, tc := range tests {
-		cache := New()
+		cache := NewCache()
 		cache.Set(tc.key, tc.data)
 
 		got := cache.Get(tc.key)
@@ -47,7 +47,7 @@ func (suit *ExampleTestSuite) TestLocalcache() {
 func (suit *ExampleTestSuite) TestLocalcache_overwriteData() {
 	expect := 2
 	key := "key1"
-	cache := New()
+	cache := NewCache()
 	cache.Set(key, 1)
 	cache.Set(key, 2)
 	got := cache.Get(key)
@@ -59,7 +59,7 @@ func (suit *ExampleTestSuite) TestLocalcache_notFoundData() {
 	expect := error(nil)
 	key := "key1"
 	notFoundKey := "notFoundkey"
-	cache := New()
+	cache := NewCache()
 	cache.Set(key, 1)
 
 	got := cache.Get(notFoundKey)
@@ -70,7 +70,7 @@ func (suit *ExampleTestSuite) TestLocalcache_notFoundData() {
 func (suit *ExampleTestSuite) TestLocalcache_expiredData() {
 	expiredMilliSecond = 1 * time.Second
 	key := "key1"
-	cache := New()
+	cache := NewCache()
 	expect := error(nil)
 	cache.Set(key, 1)
 	cache.Set(key, 2)
@@ -85,7 +85,7 @@ func (suit *ExampleTestSuite) TestLocalcache_concurrent() {
 	expiredMilliSecond = 1 * time.Second
 	expect := error(nil)
 
-	cache := New()
+	cache := NewCache()
 	key := "key1"
 	go func() {
 		cache.Set(key, 1)
