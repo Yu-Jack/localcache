@@ -21,7 +21,7 @@ func TestExampleTestSuite(t *testing.T) {
 
 func (suit *ExampleTestSuite) SetupTest() {
 	fmt.Println("prepare cache ...")
-	suit.cache = NewCache()
+	suit.cache = NewCacheV3()
 }
 
 func (suit *ExampleTestSuite) TearDownTest() {
@@ -102,6 +102,19 @@ func (suit *ExampleTestSuite) TestLocalcache_concurrent() {
 	}()
 	time.Sleep(3 * time.Second)
 
+	got := suit.cache.Get(key)
+
+	assert.Equal(suit.T(), expect, got)
+}
+
+func (suit *ExampleTestSuite) TestLocalcache_same_key_should_reset_expired_time() {
+	expiredMilliSecond = 2 * time.Second
+	expect := error(nil)
+	key := "keykeykey"
+	suit.cache.Set(key, 1)
+	time.Sleep(1200 * time.Millisecond)
+	suit.cache.Set(key, 2)
+	time.Sleep(2200 * time.Millisecond)
 	got := suit.cache.Get(key)
 
 	assert.Equal(suit.T(), expect, got)

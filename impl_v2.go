@@ -3,24 +3,14 @@ package localcache
 
 import (
 	"reflect"
-	"sync"
 	"time"
 )
 
-var (
-	expiredMilliSecond time.Duration = 30 * time.Second
-	checkPeriod        time.Duration = 1 * time.Second
-)
-
-func currentMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}
-
-func (c *cache) deleteKey(key string) {
+func (c *cacheV2) deleteKey(key string) {
 	delete(c.data, key)
 }
 
-func (c *cache) deleteTimer(key string) {
+func (c *cacheV2) deleteTimer(key string) {
 	var deletedIndex int
 	for i, timer := range c.timerList {
 		if timer.key == key {
@@ -31,9 +21,9 @@ func (c *cache) deleteTimer(key string) {
 	c.timerList = append(c.timerList[:deletedIndex], c.timerList[deletedIndex+1:]...)
 }
 
-func (c *cache) DeleteAll() {
-	c.cacheLocker.Lock()
-	defer c.cacheLocker.Unlock()
+func (c *cacheV2) DeleteAll() {
+	c.locker.Lock()
+	defer c.locker.Unlock()
 
 	keys := reflect.ValueOf(c.data).MapKeys()
 	for _, key := range keys {
@@ -42,7 +32,7 @@ func (c *cache) DeleteAll() {
 }
 
 // Get retrive data with key.
-func (c *cache) Get(key string) (data interface{}) {
+func (c *cacheV2) Get(key string) (data interface{}) {
 	cd, ok := c.data[key]
 	if !ok {
 		return nil
@@ -51,9 +41,9 @@ func (c *cache) Get(key string) (data interface{}) {
 }
 
 // Set save data with key, data is stored for 30 seconds.
-func (c *cache) Set(key string, data interface{}) {
-	locker := c.lock(key)
-	defer locker.Unlock()
+func (c *cacheV2) Set(key string, data interface{}) {
+	c.locker.Lock()
+	defer c.locker.Unlock()
 
 	cd, ok := c.data[key]
 	if !ok {
@@ -70,18 +60,15 @@ func (c *cache) Set(key string, data interface{}) {
 	c.data[key] = cd
 }
 
-func (c *cache) listenExpiredTimer() {
+func (c *cacheV2) listenExpiredTimer() {
 	for {
 		for _, t := range c.timerList {
 			select {
 			case <-t.timer.C:
-				locker := c.lock(t.key)
-				c.deleteLockKey(t.key)
-
+				c.locker.Lock()
 				c.deleteKey(t.key)
 				c.deleteTimer(t.key)
-
-				locker.Unlock()
+				c.locker.Unlock()
 			default:
 			}
 		}
@@ -89,26 +76,10 @@ func (c *cache) listenExpiredTimer() {
 	}
 }
 
-// lock cache data per key, instead of whole cache store
-func (c *cache) lock(key string) *sync.Mutex {
-	locker, ok := c.locker[key]
-	if !ok {
-		locker = new(sync.Mutex)
-		c.locker[key] = locker
-	}
-	locker.Lock()
-	return locker
-}
-
-func (c *cache) deleteLockKey(key string) {
-	delete(c.locker, key)
-}
-
 // New create a localcache.
-func NewCache() Cache {
-	c := &cache{
-		data:   make(map[string]cacheData),
-		locker: make(map[string]*sync.Mutex),
+func NewCacheV2() Cache {
+	c := &cacheV2{
+		data: make(map[string]cacheData),
 	}
 	go c.listenExpiredTimer()
 	return c

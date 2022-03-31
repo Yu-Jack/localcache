@@ -22,10 +22,27 @@ type cacheTimer struct {
 	key   string
 }
 
-type cache struct {
+// One lock for one cache data.
+type cacheV1 struct {
 	data      map[string]cacheData
 	timerList []cacheTimer
 
 	locker      map[string]*sync.Mutex
 	cacheLocker sync.Mutex
+}
+
+// Only one lock for whole cache data.
+type cacheV2 struct {
+	data      map[string]cacheData
+	timerList []cacheTimer
+
+	locker sync.Mutex
+}
+
+// Only one lock for whole cache data.
+// User time.AfterFunc to trigger deletion.
+type cacheV3 struct {
+	data map[string]cacheData
+
+	locker sync.Mutex
 }
