@@ -33,6 +33,8 @@ func (c *cacheV2) DeleteAll() {
 
 // Get retrive data with key.
 func (c *cacheV2) Get(key string) (data interface{}) {
+	c.locker.Lock()
+	defer c.locker.Unlock()
 	cd, ok := c.data[key]
 	if !ok {
 		return nil

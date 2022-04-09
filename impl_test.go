@@ -2,6 +2,7 @@ package localcache
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 	"time"
 
@@ -90,7 +91,7 @@ func (suit *ExampleTestSuite) TestLocalcache_expiredData() {
 	assert.Equal(suit.T(), expect, got)
 }
 
-func (suit *ExampleTestSuite) TestLocalcache_concurrent() {
+func (suit *ExampleTestSuite) TestLocalcache_concurrent_set_key() {
 	expiredMilliSecond = 1 * time.Second
 	expect := error(nil)
 	key := "key1"
@@ -105,6 +106,26 @@ func (suit *ExampleTestSuite) TestLocalcache_concurrent() {
 	got := suit.cache.Get(key)
 
 	assert.Equal(suit.T(), expect, got)
+}
+
+func (suit *ExampleTestSuite) TestLocalcache_concurrent_set_and_get() {
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+	go func() {
+		for i := 0; i < 500; i++ {
+			suit.cache.Set(fmt.Sprintf("%d", i), 1)
+			suit.cache.Get(fmt.Sprintf("%d", i))
+		}
+		wg.Done()
+	}()
+	go func() {
+		for i := 0; i < 500; i++ {
+			suit.cache.Set(fmt.Sprintf("%d", i), 1)
+			suit.cache.Get(fmt.Sprintf("%d", i))
+		}
+		wg.Done()
+	}()
+	wg.Wait()
 }
 
 func (suit *ExampleTestSuite) TestLocalcache_same_key_should_reset_expired_time() {
